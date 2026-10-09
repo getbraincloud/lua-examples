@@ -1,0 +1,1 @@
+function love.conf(e)e.identity="braincloud-setup"e.window=false e.modules.graphics=false e.modules.image=false e.modules.font=false e.modules.keyboard=false e.modules.mouse=false e.modules.joystick=false e.modules.touch=false e.modules.physics=false e.modules.audio=false e.modules.sound=false e.modules.video=false end

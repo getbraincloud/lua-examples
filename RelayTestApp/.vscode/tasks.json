@@ -1,0 +1,53 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run CursorParty",
+			"type": "shell",
+			"command": "love .",
+			"osx": {
+				"command": "if command -v love >/dev/null; then love .; elif [ -x ~/Applications/love.app/Contents/MacOS/love ]; then ~/Applications/love.app/Contents/MacOS/love .; else /Applications/love.app/Contents/MacOS/love .; fi"
+			},
+			"windows": {
+				"command": "& 'C:\\Program Files\\LOVE\\love.exe' ."
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "brainCloud: Setup",
+			"detail": "Sign in to brainCloud, pick an app, write braincloud_config.lua",
+			"type": "shell",
+			"command": "love .braincloud/braincloud-setup.love \"${workspaceFolder}\"",
+			"osx": {
+				"command": "if command -v love >/dev/null; then L=love; elif [ -x ~/Applications/love.app/Contents/MacOS/love ]; then L=~/Applications/love.app/Contents/MacOS/love; else L=/Applications/love.app/Contents/MacOS/love; fi; $L .braincloud/braincloud-setup.love \"${workspaceFolder}\""
+			},
+			"windows": {
+				"command": "& 'C:\\Program Files\\LOVE\\love.exe' .braincloud/braincloud-setup.love \"${workspaceFolder}\""
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "brainCloud: Refresh config",
+			"detail": "Re-fetch the app config from the saved login (or CI env vars)",
+			"type": "shell",
+			"command": "luajit .braincloud/setup/cli.lua \"${workspaceFolder}\" --refresh",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"problemMatcher": []
+		}
+	]
+}

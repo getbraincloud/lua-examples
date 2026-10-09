@@ -1,0 +1,8 @@
+{
+	"folders": [
+		{ "name": "CursorParty (RelayTestApp)", "path": "." }
+	],
+	"extensions": {
+		"recommendations": ["sumneko.lua"]
+	}
+}

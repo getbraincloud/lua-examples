@@ -1,0 +1,8 @@
+.DS_Store
+
+# brainCloud app config (written by the setup plugin, holds app credentials)
+braincloud_config.lua
+
+# Packaged builds (the shipped setup plugin is a .love too)
+*.love
+!braincloud-setup.love

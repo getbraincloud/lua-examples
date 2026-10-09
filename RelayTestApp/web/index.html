@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{{TITLE}} - brainCloud</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <style>
+    :root { --bg: #070a10; --bg2: #0f1622; --accent: #3a8ef6; --text: #e4ebf2; --dim: #7d8a99; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: radial-gradient(ellipse at 50% 0%, #142033 0%, var(--bg2) 35%, var(--bg) 75%) fixed;
+      color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    header { display: flex; align-items: center; gap: 14px; padding: 18px 16px 12px; }
+    header img { height: 30px; }
+    header img.app { height: 44px; border-radius: 9px; }
+    header .title { font-size: 20px; font-weight: 600; letter-spacing: .3px; }
+    header .sub { font-size: 12px; color: var(--dim); }
+    .stage { position: relative; max-width: calc(100vw - 32px); }
+    canvas { display: block; max-width: 100%; height: auto; border-radius: 10px; }
+    #canvas { visibility: hidden; box-shadow: 0 0 0 1px #223047, 0 18px 60px rgba(0, 0, 0, .55), 0 0 80px rgba(58, 142, 246, .12); }
+    #loadingCanvas { position: absolute; inset: 0; width: 100%; height: 100%; box-shadow: 0 0 0 1px #223047; }
+    footer { display: flex; align-items: center; gap: 12px; padding: 14px 16px 22px; font-size: 12px; color: var(--dim); }
+    footer a { color: var(--dim); }
+    footer button {
+      background: #182234; color: var(--text); border: 1px solid #2a3850; border-radius: 6px;
+      padding: 5px 12px; font-size: 12px; cursor: pointer;
+    }
+    footer button:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="braincloud-logo.png" alt="brainCloud">
+    <img class="app" src="icon.png" alt="">
+    <div>
+      <div class="title">{{TITLE}}</div>
+      <div class="sub">Relay test app &middot; brainCloud Lua SDK on LÖVE</div>
+    </div>
+  </header>
+  <div class="stage">
+    <canvas id="loadingCanvas" oncontextmenu="event.preventDefault()" width="1280" height="760"></canvas>
+    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+  </div>
+  <footer>
+    <span>Powered by <a href="https://getbraincloud.com" target="_blank" rel="noopener">brainCloud</a> &middot; LÖVE via <a href="https://github.com/Davidobot/love.js" target="_blank" rel="noopener">love.js</a></span>
+    <button onclick="goFullScreen()">Fullscreen</button>
+  </footer>
+  <script type="text/javascript">
+    function goFullScreen() {
+      var c = document.getElementById("canvas");
+      (c.requestFullscreen || c.webkitRequestFullScreen || c.mozRequestFullScreen).call(c);
+    }
+    var loadingContext = document.getElementById("loadingCanvas").getContext("2d");
+    function drawLoadingText(text) {
+      var c = loadingContext.canvas;
+      var g = loadingContext.createRadialGradient(c.width / 2, c.height / 2, 40, c.width / 2, c.height / 2, c.width / 1.4);
+      g.addColorStop(0, "#111b2b"); g.addColorStop(1, "#070a10");
+      loadingContext.fillStyle = g;
+      loadingContext.fillRect(0, 0, c.width, c.height);
+      loadingContext.textAlign = "center";
+      loadingContext.fillStyle = "#3a8ef6";
+      loadingContext.font = "600 34px system-ui, sans-serif";
+      loadingContext.fillText("{{TITLE}}", c.width / 2, c.height / 2 - 24);
+      loadingContext.fillStyle = "#7d8a99";
+      loadingContext.font = "18px system-ui, sans-serif";
+      loadingContext.fillText(text, c.width / 2, c.height / 2 + 20);
+    }
+    window.onload = function () { window.focus(); };
+    window.onclick = function () { window.focus(); };
+    window.addEventListener("keydown", function (e) {
+      if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) e.preventDefault();
+    }, false);
+    var Module = {
+      arguments: {{ARGUMENTS}},
+      INITIAL_MEMORY: {{MEMORY}},
+      printErr: console.error.bind(console),
+      canvas: (function () {
+        var canvas = document.getElementById("canvas");
+        canvas.addEventListener("webglcontextlost", function (e) { alert("WebGL context lost. Reload the page."); e.preventDefault(); }, false);
+        return canvas;
+      })(),
+      setStatus: function (text) {
+        if (text) {
+          drawLoadingText(text);
+        } else if (Module.remainingDependencies === 0) {
+          document.getElementById("loadingCanvas").style.display = "none";
+          document.getElementById("canvas").style.visibility = "visible";
+        }
+      },
+      totalDependencies: 0,
+      remainingDependencies: 0,
+      monitorRunDependencies: function (left) {
+        this.remainingDependencies = left;
+        this.totalDependencies = Math.max(this.totalDependencies, left);
+        Module.setStatus(left ? "Loading... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")" : "All downloads complete.");
+      }
+    };
+    Module.setStatus("Downloading...");
+    window.onerror = function () {
+      Module.setStatus("Something went wrong - see the browser console");
+      Module.setStatus = function (text) { if (text) Module.printErr("[post-exception status] " + text); };
+    };
+    var applicationLoad = function () {
+      braincloudWeb.attach(Module);
+      Love(Module);
+    };
+  </script>
+  <script type="text/javascript" src="braincloud-web.js"></script>
+  <script type="text/javascript" src="game.js"></script>
+  <script async type="text/javascript" src="love.js" onload="applicationLoad(this)"></script>
+</body>
+</html>
