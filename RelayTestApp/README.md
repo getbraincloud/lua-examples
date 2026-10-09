@@ -109,6 +109,24 @@ run `npx love.js -c -t CursorParty CursorParty.love web`, copy
 `braincloud/web/braincloud-web.js` into `web/`, and add it to `web/index.html` (see the SDK
 README). Serve `web/` over http(s) — opening `index.html` from disk won't work.
 
+## Run it on iPhone, iPad or Android
+
+Needs a Mac with Xcode, signed in to your Apple Developer team. With the iPhone connected:
+
+```sh
+<braincloud-lua>/platforms/ios/build.sh . --team <TEAM_ID> --bundle-id com.you.cursorparty \
+	--name CursorParty --icon assets/icon.png --launch
+```
+
+Add `--simulator` to run it in the iOS Simulator instead. For Android (device or emulator):
+
+```sh
+<braincloud-lua>/platforms/android/build.sh . --package com.you.cursorparty --name CursorParty \
+	--icon assets/icon.png --launch
+```
+ On phones, `view.lua` scales the desktop
+layout to fit the screen; tap to paint, hold to keep painting.
+
 ## For brainCloud developers (bccm)
 
 From the client-master repo, `node bccm syncsdk lua_relaytestapp` copies the local SDK and
@@ -117,6 +135,10 @@ the setup plugin in, `generate` writes the config for `data/relaytestapp_ids_<en
 `-p web` does the browser version: `build -p web` (love.js + bridge), `run -p web` (serves it at
 localhost:8071 — open more tabs for more players), `deploy -p web` (apps.braincloudservers.com
 `cursorparty-lua-<env>` + a Builds card).
+`-p android`: `build` makes the APK with `platforms/android/build.sh`, `run` also boots the first AVD if
+nothing's connected, then installs and launches it.
+`-p ios` / `-p ios-sim`: `build` makes the app with the SDK's `platforms/ios/build.sh`, `run` also
+installs and launches it (team from `data/ios_signing.json`; `BC_IOS_TEAM` / `BC_IOS_BUNDLE_ID` override).
 
 ## How it's put together
 

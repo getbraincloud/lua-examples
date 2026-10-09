@@ -6,6 +6,7 @@ local ui = require("ui")
 local state = require("state")
 local app = require("app")
 local prefs = require("prefs")
+local view = require("view")
 
 local configError
 local serverVersion = ""
@@ -32,6 +33,7 @@ local function applyInstanceArgs(args)
 end
 
 function love.load(args)
+	view.load()
 	ui.load()
 	applyInstanceArgs(args or {})
 	prefs.load()
@@ -134,7 +136,7 @@ local function drawMenuBar(w)
 end
 
 function love.draw()
-	local w, h = love.graphics.getDimensions()
+	local w, h = view.begin()
 	love.graphics.clear(ui.colors.bg)
 	if configError then
 		ui.label(configError, 40, 60, ui.colors.warn, "body", w - 80)
@@ -146,9 +148,11 @@ function love.draw()
 	drawMenuBar(w)
 	drawVersion(w, h)
 	ui.endFrame()
+	view.finish(ui.focusBottom)
 end
 
 function love.mousepressed(x, y, b)
+	x, y = view.toView(x, y)
 	ui.mousepressed(x, y, b)
 	if not app.loading and app.screen and app.screen.mousepressed then
 		app.screen.mousepressed(x, y, b)
@@ -156,6 +160,7 @@ function love.mousepressed(x, y, b)
 end
 
 function love.mousereleased(x, y, b)
+	x, y = view.toView(x, y)
 	ui.mousereleased(x, y, b)
 end
 

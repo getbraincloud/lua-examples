@@ -8,6 +8,13 @@ function love.conf(t)
 	t.window.resizable = true
 	t.window.minwidth = 1000
 	t.window.minheight = 640
+	if love._os == "iOS" or love._os == "Android" then
+		-- fullscreen landscape (resizable would follow the sensor on Android); view.lua scales the desktop layout down
+		t.window.highdpi = true
+		t.window.resizable = false
+		t.window.fullscreen = true
+		t.window.minwidth, t.window.minheight = 1, 1
+	end
 	t.modules.joystick = false
 	t.modules.physics = false
 end

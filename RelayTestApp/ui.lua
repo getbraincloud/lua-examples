@@ -22,6 +22,7 @@ ui.colors = {
 	warn = { 1, 0.75, 0.3 },
 }
 local C = ui.colors
+ui.mobile = require("view").active
 
 function ui.load()
 	fonts.small = love.graphics.newFont(11)
@@ -64,9 +65,15 @@ end
 
 --- Call at the end of each frame.
 function ui.endFrame()
-	if mouse.pressed and not ui._hitFocus then
+	-- tapped elsewhere, or the focused field is gone (screen changed): drop focus and the on-screen keyboard
+	if focus and ((mouse.pressed and not ui._hitFocus) or not ui._focusDrawn) then
+		if ui.mobile then
+			love.keyboard.setTextInput(false)
+		end
 		focus = nil
+		ui.focusBottom = nil
 	end
+	ui._focusDrawn = false
 	mouse.pressed, mouse.wheel = false, 0
 	typed, keys = {}, {}
 	ui._hitFocus = false
@@ -169,6 +176,10 @@ function ui.textfield(state, key, x, y, w, h, opts)
 		love.keyboard.setTextInput(true)
 	end
 	local focused = focus == id
+	if focused then
+		ui.focusBottom = y + h
+		ui._focusDrawn = true
+	end
 	ui.rect(x, y, w, h, focused and C.panel2 or C.panel, 4)
 	love.graphics.setColor(focused and C.accent or C.border)
 	love.graphics.rectangle("line", x + 0.5, y + 0.5, w - 1, h - 1, 4, 4)
