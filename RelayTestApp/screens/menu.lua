@@ -3,12 +3,18 @@ local state = require("state")
 local app = require("app")
 local prefs = require("prefs")
 local chat = require("chat")
+local leaderboard = require("leaderboard")
 
 local screen = {}
-local PROTOCOLS = state.isWeb and { "WSS" } or { "UDP", "TCP", "WS", "WSS" }
+local function wssSupported()
+	local url = state.bc and state.bc.client and state.bc.client.serverUrl or ""
+	return url:find(".internal.", 1, true) ~= nil
+end
+local PROTOCOLS = {}
 local TEAMS = { "alpha", "beta" }
 local typeIndex, protoIndex, teamIndex = 1, 1, 1
 local usePing = false
+local sideTab = "leaderboard"
 local errorText = ""
 
 local function indexOf(list, value)
@@ -22,18 +28,39 @@ end
 
 local DEFAULT_LOBBY_TYPE = "CursorPartyV2" -- C++ DEFAULT_LOBBY_TYPE
 
+local function refreshProtocols()
+	if state.isWeb then
+		PROTOCOLS = wssSupported() and { "WSS" } or {}
+	else
+		PROTOCOLS = wssSupported() and { "UDP", "TCP", "WS", "WSS" } or { "UDP", "TCP", "WS" }
+	end
+end
+
+-- Saved protocol if this server supports it, else the first available.
+local function pickProtocol()
+	local saved = prefs.data.protocol or state.selectedProtocol
+	for _, p in ipairs(PROTOCOLS) do
+		if p == saved then
+			return p
+		end
+	end
+	return PROTOCOLS[1]
+end
+
 function screen.enter()
-	if state.autoJoin then
+	refreshProtocols()
+	if state.autoJoin and PROTOCOLS[1] then
 		-- multi-instance: straight into the default lobby type, like the C++ client
 		state.autoJoin = false
-		app.matchmake(DEFAULT_LOBBY_TYPE, prefs.data.protocol or state.selectedProtocol, false)
+		app.matchmake(DEFAULT_LOBBY_TYPE, pickProtocol(), false)
 		return
 	end
 	typeIndex = indexOf(state.lobbyTypes, prefs.data.lobbyType or state.selectedLobbyType)
-	protoIndex = indexOf(PROTOCOLS, prefs.data.protocol or state.selectedProtocol)
+	protoIndex = indexOf(PROTOCOLS, pickProtocol())
 	usePing = prefs.data.usePing == true
 	teamIndex = indexOf(TEAMS, prefs.data.team or state.team)
 	errorText = ""
+	leaderboard.refresh()
 end
 
 function screen.setError(text)
@@ -48,7 +75,11 @@ function screen.draw(w, h)
 	ui.label("Lobby type", px, y + 70, ui.colors.dim, "small")
 	typeIndex = ui.cycler(state.lobbyTypes, typeIndex, px, y + 86, 380, 32)
 	ui.label("Relay protocol", px, y + 130, ui.colors.dim, "small")
-	protoIndex = ui.cycler(PROTOCOLS, protoIndex, px, y + 146, 380, 32)
+	if PROTOCOLS[1] then
+		protoIndex = ui.cycler(PROTOCOLS, protoIndex, px, y + 146, 380, 32)
+	else
+		ui.label("The web build needs WSS relay, which this server doesn't offer.", px, y + 150, ui.colors.warn, "small", 380)
+	end
 	usePing = ui.checkbox("Use region ping data", usePing, px, y + 194)
 	local lobbyType = state.lobbyTypes[typeIndex] or ""
 	if lobbyType:sub(1, 4) == "Team" then
@@ -61,7 +92,7 @@ function screen.draw(w, h)
 	ui.rect(px, y + 242, 32, 20, swatch, 3)
 	ui.label("(change it in the lobby)", px + 42, y + 244, ui.colors.dim, "small")
 
-	if ui.button("Find Lobby", px, y + 280, 380, 40) then
+	if ui.button("Find Lobby", px, y + 280, 380, 40, { disabled = not PROTOCOLS[1] }) and PROTOCOLS[1] then
 		local lobbyType = state.lobbyTypes[typeIndex]
 		prefs.data.lobbyType = lobbyType
 		prefs.data.protocol = PROTOCOLS[protoIndex]
@@ -79,7 +110,19 @@ function screen.draw(w, h)
 		app.logout()
 	end
 
-	chat.draw(w - 380, 60, 340, h - 120, false)
+	local sx, sw = w - 380, 340
+	local tabW = (sw - 4) / 2
+	if ui.button("Leaderboard", sx, 60, tabW, 28, { color = sideTab == "leaderboard" and ui.colors.accent or ui.colors.panel2 }) then
+		sideTab = "leaderboard"
+	end
+	if ui.button("Chat", sx + tabW + 4, 60, tabW, 28, { color = sideTab == "chat" and ui.colors.accent or ui.colors.panel2 }) then
+		sideTab = "chat"
+	end
+	if sideTab == "leaderboard" then
+		leaderboard.draw(sx, 96, sw, h - 156)
+	else
+		chat.draw(sx, 96, sw, h - 156, false)
+	end
 end
 
 return screen

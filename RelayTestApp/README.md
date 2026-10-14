@@ -152,6 +152,8 @@ installs and launches it (team from `data/ios_signing.json`; `BC_IOS_TEAM` / `BC
 | `screens/game.lua` | The relay match: cursors, shockwaves, splotches, relay settings, coverage |
 | `screens/summary.lua` | Results, leaderboard movement, rematch |
 | `coverage.lua` | Coverage scoring, identical to the other clients |
+| `leaderboard.lua` | Menu leaderboard panel: top 5 + your row, points/coverage x lifetime/quarterly |
+| `chat.lua` | Global and lobby chat panel |
 
 ## Wire protocol
 
