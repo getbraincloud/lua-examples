@@ -49,7 +49,7 @@ function love.load(args)
 	app.screens.summary = require("screens.summary")
 
 	state.bc = BrainCloud.new(state.multiInstance and ("cursorparty_" .. state.instanceIndex) or "cursorparty")
-	-- braincloud_config.lua comes from the brainCloud setup tool (or `bccm generate`)
+	-- braincloud_config.lua comes from the brainCloud setup tool
 	if not state.bc:init() then
 		configError = "No braincloud_config.lua found.\n\nRun the brainCloud setup tool from this folder:\n  love <braincloud-lua>/tools/braincloud-setup.love ."
 		return

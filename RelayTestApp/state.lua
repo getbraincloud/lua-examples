@@ -17,7 +17,7 @@ local state = {
 	myColorIndex = 0,
 	userIsReady = false,
 
-	-- `love . <index> <count>` (bccm run -i N), same as the C++ client's launch args
+	-- `love . <index> <count>` (several instances side by side), same as the C++ client's launch args
 	multiInstance = false,
 	instanceIndex = 0,
 	autoJoin = false, -- count > 1: find a lobby straight after login
